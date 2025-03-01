@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Image Captioning</title>
+    <script defer src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/@tensorflow-models/mobilenet"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/@tensorflow-models/handpose"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            background-color: #f4f4f4;
+            margin: 20px;
+        }
+        #imagePreview {
+            max-width: 100%;
+            height: auto;
+            margin-top: 20px;
+            border: 2px solid black;
+            border-radius: 10px;
+        }
+        #caption {
+            margin-top: 10px;
+            font-size: 18px;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <h2>AI Image Captioning</h2>
+    <input type="file" id="imageUpload" accept="image/*">
+    <br>
+    <img id="imagePreview" src="" alt="Image Preview" style="display: none;">
+    <p id="caption"></p>
+
+    <script>
+        const imageUpload = document.getElementById("imageUpload");
+        const imagePreview = document.getElementById("imagePreview");
+        const caption = document.getElementById("caption");
+        
+        async function loadModel() {
+            return await mobilenet.load();
+        }
+        
+        async function generateCaption(image) {
+            const model = await loadModel();
+            const predictions = await model.classify(image);
+            return `This looks like ${predictions[0].className} with a confidence of ${Math.round(predictions[0].probability * 100)}%`;
+        }
+        
+        imageUpload.addEventListener("change", async (event) => {
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = async function(e) {
+                    imagePreview.src = e.target.result;
+                    imagePreview.style.display = "block";
+                    caption.innerText = "Analyzing...";
+                    setTimeout(async () => {
+                        caption.innerText = await generateCaption(imagePreview);
+                    }, 1000);
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+    </script>
+</body>
+</html>
